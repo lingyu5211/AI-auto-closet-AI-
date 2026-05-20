@@ -18,6 +18,7 @@
           :canvas-width="canvasW"
           :canvas-height="canvasH"
           @update="handleLayersUpdate"
+          @export="handleExported"
         />
         <view class="canvas-hint" v-if="selectedClothes.length > 0">
           <text>👆 拖拽衣物调整位置</text>
@@ -59,6 +60,7 @@
       <!-- Action bar -->
       <view class="action-bar">
         <view class="btn btn-outline" @click="handleReset">🔄 重置</view>
+        <view class="btn btn-secondary" @click="handleExport">📷 导出</view>
         <view class="btn btn-primary" @click="handleSave">💾 保存穿搭</view>
       </view>
 
@@ -121,12 +123,28 @@ const toggleClothing = (item: Clothing) => {
 }
 
 const handleLayersUpdate = (_layers: ClothingLayer[]) => {
-  // Position updates from drag — no persistence needed during editing
+  // Position updates from drag interactions; no persistence needed during editing
 }
 
 const handleReset = () => {
   selectedIds.value.clear()
   tryonRef.value?.reset()
+}
+
+const handleExport = () => {
+  if (selectedIds.value.size === 0) {
+    uni.showToast({ title: '请先选择衣物', icon: 'none' })
+    return
+  }
+  tryonRef.value?.exportImage()
+}
+
+const handleExported = (dataURL: string) => {
+  if (!dataURL) {
+    uni.showToast({ title: '导出失败', icon: 'none' })
+    return
+  }
+  uni.previewImage({ urls: [dataURL] })
 }
 
 const handleSave = () => {
@@ -262,6 +280,10 @@ const handleSave = () => {
   background: $bg-white;
   color: $text-primary;
   border: 1rpx solid $border-color;
+}
+.btn-secondary {
+  background: $bg-gray;
+  color: $text-primary;
 }
 .bottom-space {
   height: 40rpx;
