@@ -1,0 +1,91 @@
+<h2>穿搭功能 — 整体架构设计</h2>
+<p class="subtitle">双模式并行方案，Canvas 合成渲染</p>
+
+<div class="section">
+  <h3>🏗️ 架构总览</h3>
+  <div class="mockup" style="margin-bottom: 1rem;">
+    <div class="mockup-header">系统架构图</div>
+    <div class="mockup-body" style="padding: 1.5rem; background: #1e1e2e; color: #cdd6f4; font-family: monospace; font-size: 0.85rem; line-height: 1.8;">
+      ┌─────────────────────────────────────────────────────┐<br/>
+      │ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;matchStore (Pinia)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      │ &nbsp;generateSmartOutfits() / saveOutfit() / ...&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      └──────────┬──────────────────┬──────────────────────┘<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;┌─────────▼────────┐&nbsp;&nbsp;┌────────▼──────────┐<br/>
+      &nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;智能穿搭页&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;手动搭配页&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;│&nbsp;match/index&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;match/manual&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;│&nbsp;┌──────────────┐ │&nbsp;&nbsp;│&nbsp;┌──────────────┐&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;│&nbsp;│ OutfitPreview │ │&nbsp;&nbsp;│&nbsp;│&nbsp;DressingRoom│&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;│&nbsp;│ (模型+穿搭预览)│ │&nbsp;&nbsp;│&nbsp;│ (虚拟试衣间)&nbsp;│&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;│&nbsp;└──────┬───────┘ │&nbsp;&nbsp;│&nbsp;└──────┬───────┘&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;└─────────┬────────┘&nbsp;&nbsp;└────────┬──────────┘<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;┌────▼──────────────▼────┐<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;TryOnCanvas&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;共用 Canvas 合成引擎&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;- 模特底图加载&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;- 衣物分层渲染&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;- 层级管理(z-index)&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;- 导出穿搭图片&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└─────────────────────────┘<br/>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>🧩 核心组件</h3>
+  <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+    <tr style="background:#f0f0f0;">
+      <th style="padding:8px 12px; text-align:left; border-bottom:2px solid #ddd;">组件</th>
+      <th style="padding:8px 12px; text-align:left; border-bottom:2px solid #ddd;">类型</th>
+      <th style="padding:8px 12px; text-align:left; border-bottom:2px solid #ddd;">职责</th>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><strong>TryOnCanvas</strong></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><span style="background:#e0e7ff;color:#4338ca;padding:2px 8px;border-radius:10px;font-size:0.75rem;">新组件</span></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;">通用 Canvas 渲染引擎，加载模特底图 + 叠加衣物图层，支持导出</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><strong>OutfitPreview</strong></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><span style="background:#e0e7ff;color:#4338ca;padding:2px 8px;border-radius:10px;font-size:0.75rem;">新组件</span></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;">智能推荐卡片中的穿搭预览，内嵌 TryOnCanvas 静态模式</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><strong>DressingRoom</strong></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><span style="background:#e0e7ff;color:#4338ca;padding:2px 8px;border-radius:10px;font-size:0.75rem;">新组件</span></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;">虚拟试衣间交互层，衣物选择 + 拖拽调整 + 层级控制</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><strong>ModelSwitch</strong></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><span style="background:#e0e7ff;color:#4338ca;padding:2px 8px;border-radius:10px;font-size:0.75rem;">新组件</span></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;">男/女模特切换按钮</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><strong>OutfitCard</strong></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;"><span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:0.75rem;">改造</span></td>
+      <td style="padding:8px 12px; border-bottom:1px solid #eee;">卡片增加 OutfitPreview 预览区域</td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <h3>📊 数据流</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="padding:1rem; font-family:monospace; font-size:0.82rem; line-height:2;">
+      <b>智能推荐流程：</b><br/>
+      wardrobe.clothes → matchStore.generateSmartOutfits()<br/>
+      &nbsp;&nbsp;→ Outfit[] (含 clothes ids)<br/>
+      &nbsp;&nbsp;→ OutfitCard → OutfitPreview → TryOnCanvas<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;→ 加载模特底图 (根据 user.gender / 手动选择)<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;→ 按衣物 type 分层渲染到 Canvas<br/>
+      &nbsp;&nbsp;&nbsp;&nbsp;→ 显示穿搭预览图<br/><br/>
+      <b>手动试穿流程：</b><br/>
+      用户选择模特 → 选择衣物 → DressingRoom<br/>
+      &nbsp;&nbsp;→ TryOnCanvas 实时更新<br/>
+      &nbsp;&nbsp;→ 拖拽调整位置/大小/层级<br/>
+      &nbsp;&nbsp;→ 保存穿搭 → matchStore.addOutfit()<br/>
+      &nbsp;&nbsp;→ 可导出 Canvas 为图片
+    </div>
+  </div>
+</div>

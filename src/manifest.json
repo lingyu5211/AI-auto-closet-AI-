@@ -1,0 +1,27 @@
+{
+  "name": "电子衣橱",
+  "appid": "__UNI__WARDROBE",
+  "description": "数字化衣物管理+智能穿搭辅助",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "h5": {
+    "title": "电子衣橱",
+    "router": {
+      "mode": "hash",
+      "base": "./"
+    },
+    "optimization": {
+      "treeShaking": {
+        "enable": true
+      }
+    }
+  },
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false
+    },
+    "usingComponents": true
+  }
+}

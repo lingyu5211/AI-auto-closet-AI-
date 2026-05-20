@@ -1,0 +1,132 @@
+<h2>页面布局设计</h2>
+<p class="subtitle">智能穿搭 + 虚拟试衣间</p>
+
+<div class="split">
+  <!-- 智能穿搭页 -->
+  <div class="mockup">
+    <div class="mockup-header">页面一：智能穿搭 (match/index)</div>
+    <div class="mockup-body" style="padding: 1rem; background: #f5f5f5; min-height: 520px; font-family: sans-serif;">
+      <!-- Nav -->
+      <div class="mock-nav" style="margin-bottom:0.75rem;">← 智能穿搭 🔄</div>
+
+      <!-- Mode tabs -->
+      <div style="display:flex; gap:6px; margin-bottom:0.75rem; background:#fff; border-radius:10px; padding:6px;">
+        <span style="flex:1; text-align:center; padding:6px; background:#6366f1; color:#fff; border-radius:8px; font-size:0.75rem; font-weight:600;">✨ 智能</span>
+        <span style="flex:1; text-align:center; padding:6px; color:#999; font-size:0.75rem;">🎨 手动</span>
+        <span style="flex:1; text-align:center; padding:6px; color:#999; font-size:0.75rem;">📜 历史</span>
+      </div>
+
+      <!-- Model switch -->
+      <div style="display:flex; justify-content:flex-end; margin-bottom:0.5rem;">
+        <span style="background:#fff; border-radius:16px; padding:4px 10px; font-size:0.7rem; color:#6366f1;">👤 女 ▸ 男</span>
+      </div>
+
+      <!-- Outfit card 1 with model preview -->
+      <div style="background:#fff; border-radius:12px; padding:0.75rem; margin-bottom:0.75rem;">
+        <div style="display:flex; gap:0.75rem;">
+          <!-- Model preview area -->
+          <div style="width:120px; height:180px; background:linear-gradient(135deg, #e0e7ff, #f5f3ff); border-radius:8px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; flex-shrink:0;">
+            <span style="font-size:2rem; opacity:0.3;">👩‍💼</span>
+            <div style="position:absolute; top:15px; left:25px; width:70px; height:40px; background:rgba(255,255,255,0.7); border-radius:4px; border:1px dashed #999; display:flex; align-items:center; justify-content:center; font-size:0.55rem; color:#666;">👕 上衣</div>
+            <div style="position:absolute; top:65px; left:20px; width:80px; height:55px; background:rgba(255,255,255,0.7); border-radius:4px; border:1px dashed #999; display:flex; align-items:center; justify-content:center; font-size:0.55rem; color:#666;">👖 下装</div>
+            <div style="position:absolute; bottom:15px; left:30px; width:60px; height:25px; background:rgba(255,255,255,0.7); border-radius:4px; border:1px dashed #999; display:flex; align-items:center; justify-content:center; font-size:0.55rem; color:#666;">👟 鞋</div>
+          </div>
+          <!-- Info -->
+          <div style="flex:1; display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <div style="font-weight:600; font-size:0.85rem;">休闲穿搭 #1</div>
+              <div style="color:#999; font-size:0.7rem; margin-top:2px;">白色T恤 + 蓝色牛仔裤 + 白色运动鞋</div>
+              <div style="margin-top:4px;"><span style="background:#e0e7ff; color:#4338ca; padding:2px 6px; border-radius:4px; font-size:0.6rem;">休闲</span> <span style="background:#f0fdf4; color:#166534; padding:2px 6px; border-radius:4px; font-size:0.6rem;">夏季</span></div>
+            </div>
+            <div style="display:flex; gap:4px;">
+              <span style="flex:1; text-align:center; padding:4px; border:1px solid #ddd; border-radius:6px; font-size:0.65rem;">收藏</span>
+              <span style="flex:1; text-align:center; padding:4px; background:#6366f1; color:#fff; border-radius:6px; font-size:0.65rem;">应用</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Outfit card 2 -->
+      <div style="background:#fff; border-radius:12px; padding:0.75rem; margin-bottom:0.75rem;">
+        <div style="display:flex; gap:0.75rem;">
+          <div style="width:120px; height:180px; background:linear-gradient(135deg, #e0e7ff, #f5f3ff); border-radius:8px; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0;">
+            <span style="font-size:2rem; opacity:0.3;">👩‍💼</span>
+            <div style="position:absolute; top:10px; left:25px; width:70px; height:35px; background:rgba(255,255,255,0.7); border-radius:4px; border:1px dashed #999;"></div>
+            <div style="position:absolute; top:55px; left:20px; width:80px; height:60px; background:rgba(255,255,255,0.7); border-radius:4px; border:1px dashed #999;"></div>
+            <div style="position:absolute; bottom:15px; left:30px; width:60px; height:25px; background:rgba(255,255,255,0.7); border-radius:4px; border:1px dashed #999;"></div>
+          </div>
+          <div style="flex:1;">
+            <div style="font-weight:600; font-size:0.85rem;">通勤穿搭 #2</div>
+            <div style="color:#999; font-size:0.7rem; margin-top:2px;">灰色衬衫 + 黑色西裤 + 皮鞋</div>
+            <div style="margin-top:4px;"><span style="background:#fef3c7; color:#92400e; padding:2px 6px; border-radius:4px; font-size:0.6rem;">通勤</span></div>
+            <div style="display:flex; gap:4px; margin-top:auto; margin-top:12px;">
+              <span style="flex:1; text-align:center; padding:4px; border:1px solid #ddd; border-radius:6px; font-size:0.65rem;">收藏</span>
+              <span style="flex:1; text-align:center; padding:4px; background:#6366f1; color:#fff; border-radius:6px; font-size:0.65rem;">应用</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 虚拟试衣间 -->
+  <div class="mockup">
+    <div class="mockup-header">页面二：虚拟试衣间 (match/manual)</div>
+    <div class="mockup-body" style="padding: 1rem; background: #f5f5f5; min-height: 520px; font-family: sans-serif;">
+      <!-- Nav -->
+      <div class="mock-nav" style="margin-bottom:0.75rem;">← 虚拟试衣间</div>
+
+      <!-- Model switch + canvas -->
+      <div style="display:flex; justify-content:flex-end; margin-bottom:0.5rem;">
+        <span style="background:#fff; border-radius:16px; padding:4px 10px; font-size:0.7rem; color:#6366f1;">👤 女 ▸ 男</span>
+      </div>
+
+      <!-- Canvas area -->
+      <div style="background:#e0e0e0; border-radius:12px; height:280px; display:flex; align-items:center; justify-content:center; position:relative; margin-bottom:0.75rem;">
+        <span style="font-size:5rem; opacity:0.4;">👩‍💼</span>
+        <!-- Overlaid clothing items -->
+        <div style="position:absolute; top:65px; left:85px; width:80px; height:40px; background:rgba(255,255,255,0.85); border-radius:4px; border:1.5px solid #6366f1; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#666; cursor:move;">👕 白T恤</div>
+        <div style="position:absolute; top:125px; left:75px; width:100px; height:55px; background:rgba(255,255,255,0.85); border-radius:4px; border:1.5px solid #6366f1; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#666;">👖 牛仔裤</div>
+        <div style="position:absolute; bottom:40px; left:90px; width:60px; height:25px; background:rgba(255,255,255,0.85); border-radius:4px; border:1.5px solid #6366f1; display:flex; align-items:center; justify-content:center; font-size:0.6rem; color:#666;">👟 运动鞋</div>
+
+        <!-- Toolbar -->
+        <div style="position:absolute; bottom:8px; left:8px; right:8px; display:flex; gap:4px; background:rgba(0,0,0,0.7); padding:4px 6px; border-radius:8px;">
+          <span style="color:#fff; font-size:0.55rem; padding:2px 6px; background:#6366f1; border-radius:4px;">✋移动</span>
+          <span style="color:#ccc; font-size:0.55rem; padding:2px 6px;">🔍缩放</span>
+          <span style="color:#ccc; font-size:0.55rem; padding:2px 6px;">📐层级</span>
+          <span style="color:#ccc; font-size:0.55rem; padding:2px 6px; margin-left:auto;">📷导出</span>
+        </div>
+      </div>
+
+      <!-- Category tabs -->
+      <div style="display:flex; gap:4px; margin-bottom:0.5rem; overflow-x:auto;">
+        <span style="padding:4px 10px; background:#6366f1; color:#fff; border-radius:14px; font-size:0.65rem; white-space:nowrap;">👕 上衣</span>
+        <span style="padding:4px 10px; background:#eee; border-radius:14px; font-size:0.65rem; white-space:nowrap;">👖 下装</span>
+        <span style="padding:4px 10px; background:#eee; border-radius:14px; font-size:0.65rem; white-space:nowrap;">🧥 外套</span>
+        <span style="padding:4px 10px; background:#eee; border-radius:14px; font-size:0.65rem; white-space:nowrap;">👟 鞋子</span>
+        <span style="padding:4px 10px; background:#eee; border-radius:14px; font-size:0.65rem; white-space:nowrap;">🎒 配饰</span>
+      </div>
+
+      <!-- Clothing picker -->
+      <div style="display:flex; gap:6px; overflow-x:auto; margin-bottom:0.75rem;">
+        <div style="width:56px; height:56px; background:#fff; border-radius:8px; border:2px solid #6366f1; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#666;">白T</div>
+        <div style="width:56px; height:56px; background:#fff; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#666;">衬衫</div>
+        <div style="width:56px; height:56px; background:#fff; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#666;">卫衣</div>
+        <div style="width:56px; height:56px; background:#fff; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#666;">毛衣</div>
+        <div style="width:56px; height:56px; background:#fff; border-radius:8px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.5rem; color:#666;">针织</div>
+      </div>
+
+      <!-- Selected items + actions -->
+      <div style="background:#fff; border-radius:10px; padding:0.5rem 0.75rem; margin-bottom:0.5rem; font-size:0.7rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <span style="font-weight:600;">已选 (3)</span>
+          <span style="color:#999;">上衣/下装/鞋</span>
+        </div>
+      </div>
+      <div style="display:flex; gap:6px;">
+        <span style="flex:1; text-align:center; padding:8px; background:#eee; border-radius:8px; font-size:0.75rem;">🔄 重置</span>
+        <span style="flex:1; text-align:center; padding:8px; background:#6366f1; color:#fff; border-radius:8px; font-size:0.75rem;">💾 保存穿搭</span>
+      </div>
+    </div>
+  </div>
+</div>

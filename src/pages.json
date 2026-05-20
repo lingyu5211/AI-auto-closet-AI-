@@ -1,0 +1,117 @@
+{
+  "pages": [
+    {
+      "path": "pages/home/index",
+      "style": {
+        "navigationBarTitleText": "电子衣橱",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/home/exit",
+      "style": {
+        "navigationBarTitleText": "退出",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/wardrobe/index",
+      "style": {
+        "navigationBarTitleText": "我的衣橱",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/wardrobe/add",
+      "style": {
+        "navigationBarTitleText": "添加衣物",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/wardrobe/detail",
+      "style": {
+        "navigationBarTitleText": "衣物详情",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/match/index",
+      "style": {
+        "navigationBarTitleText": "智能穿搭",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/match/manual",
+      "style": {
+        "navigationBarTitleText": "手动搭配",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/diary/index",
+      "style": {
+        "navigationBarTitleText": "穿搭日记",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/message/index",
+      "style": {
+        "navigationBarTitleText": "消息",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/user/index",
+      "style": {
+        "navigationBarTitleText": "用户主页",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/diary/add",
+      "style": {
+        "navigationBarTitleText": "添加日记",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/settings/index",
+      "style": {
+        "navigationBarTitleText": "设置",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/auth/login",
+      "style": {
+        "navigationBarTitleText": "登录",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/auth/register",
+      "style": {
+        "navigationBarTitleText": "注册",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/auth/guide",
+      "style": {
+        "navigationBarTitleText": "新手引导",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "电子衣橱",
+    "navigationBarBackgroundColor": "#ffffff",
+    "backgroundColor": "#f5f5f5",
+    "backgroundColorTop": "#f5f5f5",
+    "backgroundColorBottom": "#f5f5f5"
+  }
+}

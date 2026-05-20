@@ -1,0 +1,41 @@
+<h2>衣物叠加到模特上的渲染方式</h2>
+<p class="subtitle">决定预览效果的真实度 vs 开发复杂度</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>分层定位叠加</h3>
+      <p>模特图作为底层，衣物图片按类别定位到固定区域（上衣在胸部、下装在腰部等），通过 CSS absolute 定位 + transform scale 实现。可拖拽微调位置和大小。</p>
+      <p style="color:#6366f1;font-size:0.85rem;">真实感 ★★★☆☆ | 开发量 中等 | 适合快速出效果</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>实现简单，纯 CSS 定位</li><li>衣物图片清晰可见</li><li>支持拖拽微调</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>不能自适应模特姿态</li><li>叠加感明显，不够自然</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="label" style="background:#10b981;color:#fff;padding:2px 8px;border-radius:12px;font-size:0.7rem;">推荐</div>
+    <div class="content">
+      <h3>Canvas 合成渲染</h3>
+      <p>使用 Canvas 将模特和衣物绘制到同一画布上。衣物按身体区域裁剪（如领口形状遮罩），支持 z-index 层级（外套 > 上衣 > 内搭），自动适配模特比例。</p>
+      <p style="color:#6366f1;font-size:0.85rem;">真实感 ★★★★☆ | 开发量 较高 | 效果好且可控</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>支持遮罩裁剪，更自然</li><li>层级自动管理（内搭→外套）</li><li>可导出穿搭图片</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>需定义各类型衣物的放置区域</li><li>Canvas 交互比 DOM 复杂</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>缩略图并排展示</h3>
+      <p>不叠加到模特上，而是模特图 + 衣物缩略图列表并排/网格展示。最简单但缺少"试穿"感。</p>
+      <p style="color:#6366f1;font-size:0.85rem;">真实感 ★★☆☆☆ | 开发量 低</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>优点</h4><ul><li>零开发复杂度</li><li>几乎所有衣物图片都适用</li></ul></div>
+        <div class="cons"><h4>缺点</h4><ul><li>没有"试穿"的直观感受</li><li>和普通卡片列表没区别</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
