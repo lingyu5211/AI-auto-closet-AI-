@@ -85,8 +85,6 @@ const getTypeIcon = (type: string) => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/variables.scss' as *;
-
 .outfit-card {
   background-color: $bg-white;
   border-radius: $border-radius-lg;

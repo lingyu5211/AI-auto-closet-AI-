@@ -165,8 +165,6 @@ const handleSave = () => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/variables.scss' as *;
-
 .dressing-page {
   min-height: 100vh;
   background: $bg-color;

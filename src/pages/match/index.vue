@@ -205,8 +205,6 @@ onShow(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/variables.scss' as *;
-
 .match-page {
   min-height: 100vh;
   background-color: $bg-color;

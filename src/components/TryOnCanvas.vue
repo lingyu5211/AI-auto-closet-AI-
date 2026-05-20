@@ -469,8 +469,6 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/variables.scss' as *;
-
 .tryon-canvas-wrapper {
   position: relative;
   overflow: hidden;

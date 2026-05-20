@@ -25,8 +25,6 @@ const toggle = () => {
 </script>
 
 <style lang="scss" scoped>
-@use '@/styles/variables.scss' as *;
-
 .model-switch {
   display: inline-flex;
   align-items: center;
