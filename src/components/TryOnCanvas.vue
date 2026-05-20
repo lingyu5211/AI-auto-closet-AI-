@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, getCurrentInstance, nextTick } from 'vue'
+import { ref, watch, onMounted, onUnmounted, getCurrentInstance, nextTick } from 'vue'
 import type { Clothing } from '@/types'
 
 /* ==================== Types ==================== */
@@ -86,6 +86,7 @@ const layers = ref<ClothingLayer[]>([])
 const draggingState = ref<DragState | null>(null)
 const renderScheduled = ref(false)
 const initialized = ref(false)
+const imageSizeCache = new Map<string, { width: number; height: number }>()
 
 /* ==================== Utility Functions ==================== */
 
@@ -210,7 +211,25 @@ function doRender(): Promise<void> {
     const sorted = [...layers.value].sort((a, b) => a.zIndex - b.zIndex)
     for (const layer of sorted) {
       if (!layer.clothing.photo) continue
-      ctx.drawImage(layer.clothing.photo, layer.x, layer.y, layer.w, layer.h)
+
+      const cached = imageSizeCache.get(layer.clothing.photo)
+      if (cached) {
+        // Aspect-ratio-corrected: letter-box within the region
+        const scale = Math.min(layer.w / cached.width, layer.h / cached.height)
+        const dw = cached.width * scale
+        const dh = cached.height * scale
+        ctx.drawImage(
+          layer.clothing.photo,
+          layer.x + (layer.w - dw) / 2,
+          layer.y + (layer.h - dh) / 2,
+          dw,
+          dh
+        )
+      } else {
+        // No cached dimensions yet — draw stretched and trigger loading
+        ctx.drawImage(layer.clothing.photo, layer.x, layer.y, layer.w, layer.h)
+        preloadClothingImage(layer.clothing.photo)
+      }
     }
 
     // Execute draw commands (reserve=false clears previous frame)
@@ -220,13 +239,29 @@ function doRender(): Promise<void> {
   })
 }
 
+/** Preload clothing image dimensions into cache, re-render when ready */
+function preloadClothingImage(src: string): void {
+  if (imageSizeCache.has(src)) return
+  uni.getImageInfo({
+    src,
+    success: (info) => {
+      imageSizeCache.set(src, { width: info.width, height: info.height })
+      scheduleRender()
+    },
+  })
+}
+
 /** Schedule a render on next tick, deduplicating rapid calls */
+let pendingRender: Promise<void> | null = null
+
 function scheduleRender(): void {
   if (renderScheduled.value) return
   renderScheduled.value = true
-  nextTick(() => {
-    renderScheduled.value = false
-    doRender()
+  pendingRender = new Promise<void>((resolve) => {
+    nextTick(() => {
+      renderScheduled.value = false
+      doRender().then(resolve)
+    })
   })
 }
 
@@ -295,11 +330,11 @@ function reset(): void {
 
 /** Export canvas to image and emit @export event */
 async function exportImage(): Promise<void> {
-  // Ensure canvas is fully rendered first
-  await doRender()
-
-  // Small delay to let the canvas paint complete
-  await new Promise((r) => setTimeout(r, 50))
+  // Wait for any pending render to complete
+  scheduleRender()
+  if (pendingRender) {
+    await pendingRender
+  }
 
   // Try H5 canvas toDataURL first
   try {
@@ -425,9 +460,17 @@ onMounted(() => {
     initCanvas()
   })
 })
+
+onUnmounted(() => {
+  ctx = null
+  draggingState.value = null
+  pendingRender = null
+})
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/variables.scss' as *;
+
 .tryon-canvas-wrapper {
   position: relative;
   overflow: hidden;
