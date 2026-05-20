@@ -43,7 +43,11 @@
           <text class="mode-name">穿搭历史</text>
         </view>
       </view>
-      
+
+      <view class="model-switch-bar">
+        <ModelSwitch v-model="match.modelGender" />
+      </view>
+
       <view class="outfit-section" v-if="activeMode === 'smart'">
         <view class="section-header">
           <text class="section-title">为你推荐</text>
@@ -56,7 +60,7 @@
             :key="outfit.id"
             class="outfit-card-wrapper"
           >
-            <OutfitCard :outfit="outfit" :show-actions="true" @click="handleOutfitClick" @favorite="handleFavorite" />
+            <OutfitCard :outfit="outfit" :show-actions="true" :show-preview="true" :model-src="match.modelImage" @click="handleOutfitClick" @favorite="handleFavorite" />
             <view class="outfit-actions-bottom">
               <view class="btn btn-outline btn-sm" @click="handleSave(outfit)">保存</view>
               <view class="btn btn-primary btn-sm" @click="handleApply(outfit)">应用</view>
@@ -83,7 +87,7 @@
             :key="outfit.id"
             class="outfit-card-wrapper"
           >
-            <OutfitCard :outfit="outfit" :show-actions="true" @click="handleOutfitClick" @favorite="handleFavorite" />
+            <OutfitCard :outfit="outfit" :show-actions="true" :show-preview="true" :model-src="match.modelImage" @click="handleOutfitClick" @favorite="handleFavorite" />
             <view class="outfit-actions-bottom">
               <view class="btn btn-outline btn-sm" @click="handleApply(outfit)">应用</view>
             </view>
@@ -111,6 +115,7 @@ import { useMatchStore } from '@/store/match'
 import { useWardrobeStore } from '@/store/wardrobe'
 import type { Outfit } from '@/types'
 import OutfitCard from '@/components/OutfitCard.vue'
+import ModelSwitch from '@/components/ModelSwitch.vue'
 import TabBar from '@/components/TabBar.vue'
 
 const match = useMatchStore()
@@ -200,6 +205,8 @@ onShow(() => {
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/variables.scss' as *;
+
 .match-page {
   min-height: 100vh;
   background-color: $bg-color;
@@ -305,6 +312,12 @@ onShow(() => {
   font-size: $font-size-xs;
   color: $text-secondary;
   margin-top: $spacing-xs;
+}
+
+.model-switch-bar {
+  display: flex;
+  justify-content: center;
+  padding: 0 $spacing-md $spacing-sm;
 }
 
 .outfit-section {

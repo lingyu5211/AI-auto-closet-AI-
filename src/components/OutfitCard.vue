@@ -1,6 +1,15 @@
 <template>
   <view class="outfit-card" @click="handleClick">
-    <view class="outfit-images">
+    <view class="outfit-preview" v-if="showPreview && modelSrc">
+      <TryOnCanvas
+        :model-src="modelSrc"
+        :clothes="displayClothes"
+        :interactive="false"
+        :canvas-width="previewW"
+        :canvas-height="previewH"
+      />
+    </view>
+    <view class="outfit-images" v-else>
       <view v-for="(clothing, index) in displayClothes" :key="clothing.id" class="outfit-image" :style="{ zIndex: displayClothes.length - index }">
         <image v-if="clothing.photo" :src="clothing.photo" mode="aspectFill" />
         <view v-else class="placeholder-image">
@@ -28,11 +37,17 @@
 import { computed } from 'vue'
 import type { Outfit, Clothing } from '@/types'
 import { useWardrobeStore } from '@/store/wardrobe'
+import TryOnCanvas from '@/components/TryOnCanvas.vue'
 
 const props = defineProps<{
   outfit: Outfit
   showActions?: boolean
+  showPreview?: boolean
+  modelSrc?: string
 }>()
+
+const previewW = 140
+const previewH = 200
 
 const emit = defineEmits<{
   click: [outfit: Outfit]
@@ -70,12 +85,20 @@ const getTypeIcon = (type: string) => {
 </script>
 
 <style lang="scss" scoped>
+@use '@/styles/variables.scss' as *;
+
 .outfit-card {
   background-color: $bg-white;
   border-radius: $border-radius-lg;
   overflow: hidden;
   box-shadow: $shadow-sm;
   position: relative;
+}
+
+.outfit-preview {
+  padding: $spacing-sm;
+  display: flex;
+  justify-content: center;
 }
 
 .outfit-images {
