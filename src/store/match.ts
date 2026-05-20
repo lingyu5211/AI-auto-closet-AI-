@@ -11,6 +11,20 @@ export const useMatchStore = defineStore('match', () => {
   const currentWeather = ref<Weather | null>(null)
   const outfitHistory = ref<string[]>([])
 
+  // Model gender state
+  const modelGender = ref<'male' | 'female'>('female')
+
+  const setModelGender = (gender: 'male' | 'female') => {
+    modelGender.value = gender
+  }
+
+  // Computed model image path based on selected gender
+  const modelImage = computed(() => {
+    return modelGender.value === 'male'
+      ? '/src/img/boy_model.png'
+      : '/src/img/girl_model.png'
+  })
+
   const loadOutfits = () => {
     try {
       const stored = uni.getStorageSync(STORAGE_KEY)
@@ -254,6 +268,9 @@ export const useMatchStore = defineStore('match', () => {
     getOutfitById,
     setWeather,
     getTempAdvice,
-    getStyleByTemp
+    getStyleByTemp,
+    modelGender,
+    modelImage,
+    setModelGender,
   }
 })
