@@ -211,7 +211,7 @@ const selectType = (type: typeof CLOTHING_TYPES[0]) => {
   showTypePicker.value = false
 }
 
-const compressImage = (file: File, maxWidth = 400, maxHeight = 400, quality = 0.6): Promise<string> => {
+const compressImage = (file: File, maxSide = 1024): Promise<string> => {
     return new Promise((resolve) => {
       const img = new Image()
       const reader = new FileReader()
@@ -220,30 +220,33 @@ const compressImage = (file: File, maxWidth = 400, maxHeight = 400, quality = 0.
         img.onload = () => {
           let width = img.width
           let height = img.height
-          
-          if (width > height) {
-            if (width > maxWidth) {
-              height = (height * maxWidth) / width
-              width = maxWidth
-            }
-          } else {
-            if (height > maxHeight) {
-              width = (width * maxHeight) / height
-              height = maxHeight
-            }
+
+          // Scale down long side to maxSide, maintaining aspect ratio
+          const longSide = Math.max(width, height)
+          if (longSide > maxSide) {
+            const scale = maxSide / longSide
+            width = Math.round(width * scale)
+            height = Math.round(height * scale)
           }
-          
+
           const canvas = document.createElement('canvas')
           canvas.width = width
           canvas.height = height
           const ctx = canvas.getContext('2d')
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height)
-            const compressedDataUrl = canvas.toDataURL('image/jpeg', quality)
-            resolve(compressedDataUrl)
-          } else {
+          if (!ctx) {
             resolve(e.target?.result as string)
+            return
           }
+          ctx.drawImage(img, 0, 0, width, height)
+
+          // Iteratively compress to keep dataURL under ~200KB
+          let quality = 0.7
+          let result = canvas.toDataURL('image/jpeg', quality)
+          while (result.length > 200 * 1024 && quality > 0.2) {
+            quality -= 0.15
+            result = canvas.toDataURL('image/jpeg', Math.round(quality * 100) / 100)
+          }
+          resolve(result)
         }
       }
       reader.readAsDataURL(file)
@@ -311,17 +314,24 @@ const handlePhotoUpload = () => {
 }
 
 const handleSubmit = () => {
+  if (!photo.value) {
+    uni.showToast({ title: '请上传衣物照片', icon: 'none' })
+    return
+  }
+
   if (!form.type) {
     uni.showToast({ title: '请选择衣物类型', icon: 'none' })
     return
   }
-  
+
   if (!form.color) {
     uni.showToast({ title: '请选择颜色', icon: 'none' })
     return
   }
-  
-  wardrobe.addClothing({
+
+  uni.showLoading({ title: '保存中...' })
+
+  const result = wardrobe.addClothing({
     name: form.name,
     type: form.type,
     subType: form.subType,
@@ -341,7 +351,14 @@ const handleSubmit = () => {
     remark: form.remark,
     photo: photo.value
   })
-  
+
+  uni.hideLoading()
+
+  if (!result) {
+    // Save failed — error toast already shown by wardrobe store
+    return
+  }
+
   uni.showToast({ title: '添加成功', icon: 'success' })
   setTimeout(() => {
     uni.navigateBack()

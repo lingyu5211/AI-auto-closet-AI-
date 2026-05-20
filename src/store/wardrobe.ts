@@ -62,12 +62,18 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
   const saveClothes = () => {
     try {
       const data = JSON.stringify(clothes.value)
-      console.log('Saving clothes data, size:', data.length)
+      console.log('Saving clothes count:', clothes.value.length, 'data size:', (data.length / 1024).toFixed(1) + 'KB')
+      // uni storage typically has ~5-10MB limit; warn if over 3MB
+      if (data.length > 3 * 1024 * 1024) {
+        console.warn('Storage data approaching limit, consider using smaller images')
+      }
       uni.setStorageSync(STORAGE_KEY, data)
       console.log('Save successful')
+      return true
     } catch (e: any) {
       console.error('Failed to save clothes:', e.message || e)
-      uni.showToast({ title: '保存失败，数据过大', icon: 'none' })
+      uni.showToast({ title: '保存失败，存储空间不足，请压缩图片后重试', icon: 'none', duration: 3000 })
+      return false
     }
   }
 
@@ -101,7 +107,12 @@ export const useWardrobeStore = defineStore('wardrobe', () => {
       updatedAt: Date.now()
     }
     clothes.value.unshift(newClothing)
-    saveClothes()
+    const saved = saveClothes()
+    if (!saved) {
+      // Roll back on save failure
+      clothes.value.shift()
+      return null
+    }
     return newClothing
   }
 
