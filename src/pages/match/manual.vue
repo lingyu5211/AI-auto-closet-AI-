@@ -1,33 +1,38 @@
 <template>
   <view class="dressing-page">
-    <NavBar title="虚拟试衣间" :show-back="true" />
+    <NavBar title="AI 虚拟试衣间" :show-back="true" />
 
-    <scroll-view class="dressing-content" scroll-y>
-      <!-- Model gender switch -->
-      <view class="model-switch-bar">
+    <view class="dressing-body">
+      <!-- Model gender toggle -->
+      <view class="model-bar">
         <ModelSwitch v-model="match.modelGender" />
       </view>
 
-      <!-- Canvas try-on area -->
+      <!-- Image display area -->
       <view class="canvas-section">
-        <TryOnCanvas
-          ref="tryonRef"
-          :model-src="match.modelImage"
-          :clothes="selectedClothes"
-          :interactive="true"
-          :canvas-width="canvasW"
-          :canvas-height="canvasH"
-          @update="handleLayersUpdate"
-          @export="handleExported"
-        />
-        <view class="canvas-hint" v-if="selectedClothes.length > 0">
-          <text>👆 拖拽衣物调整位置</text>
+        <view class="image-stage">
+          <image
+            v-if="resultImage"
+            :src="resultImage"
+            mode="aspectFit"
+            class="result-image"
+          />
+          <view v-else-if="isGenerating" class="stage-loading">
+            <text class="stage-spinner">⏳</text>
+            <text class="stage-text">{{ stepLabel[currentStep] || '处理中...' }}</text>
+          </view>
+          <view v-else class="stage-empty">
+            <text class="stage-icon">👗</text>
+            <text class="stage-text">选择衣物后点击生成</text>
+          </view>
         </view>
       </view>
 
-      <!-- Clothing category picker -->
+      <!-- Clothing picker -->
       <view class="picker-section">
-        <scroll-view class="category-tabs" scroll-x>
+        <view class="picker-label">选择衣物</view>
+
+        <scroll-view class="category-tabs" scroll-x :show-scrollbar="false">
           <view
             v-for="cat in categories"
             :key="cat.value"
@@ -35,11 +40,16 @@
             :class="{ active: activeCategory === cat.value }"
             @click="activeCategory = cat.value"
           >
-            <text>{{ cat.icon }} {{ cat.label }}</text>
+            <text>{{ cat.label }}</text>
           </view>
         </scroll-view>
 
-        <scroll-view class="clothing-strip" scroll-x v-if="filteredClothes.length > 0">
+        <scroll-view
+          class="clothing-strip"
+          scroll-x
+          :show-scrollbar="false"
+          v-if="filteredClothes.length > 0"
+        >
           <view
             v-for="item in filteredClothes"
             :key="item.id"
@@ -47,25 +57,36 @@
             :class="{ selected: isSelected(item.id) }"
             @click="toggleClothing(item)"
           >
-            <image :src="item.photo" mode="aspectFill" />
-            <text class="clothing-name">{{ item.name }}</text>
-            <view class="check-mark" v-if="isSelected(item.id)">✓</view>
+            <view class="thumb-img-wrap">
+              <image :src="item.photo" mode="aspectFill" />
+              <view v-if="isSelected(item.id)" class="thumb-check">
+                <text>✓</text>
+              </view>
+            </view>
+            <text class="thumb-name">{{ item.name || '未命名' }}</text>
           </view>
         </scroll-view>
         <view v-else class="empty-cat">
-          <text>暂无{{ getCatLabel(activeCategory) }}，请先添加衣物</text>
+          <text>暂无{{ getCatLabel(activeCategory) }}类衣物，请先添加</text>
         </view>
       </view>
 
       <!-- Action bar -->
       <view class="action-bar">
-        <view class="btn btn-outline" @click="handleReset">🔄 重置</view>
-        <view class="btn btn-secondary" @click="handleExport">📷 导出</view>
-        <view class="btn btn-primary" @click="handleSave">💾 保存穿搭</view>
+        <view class="act-btn reset" @click="handleReset">
+          <text>重置</text>
+        </view>
+        <view class="act-btn export" @click="handleExport">
+          <text>导出图片</text>
+        </view>
+        <view class="act-btn generate" :class="{ disabled: isGenerating }" @click="handleGenerate">
+          <text>{{ isGenerating ? '生成中...' : '生成效果图' }}</text>
+        </view>
+        <view class="act-btn save" @click="handleSave">
+          <text>保存穿搭</text>
+        </view>
       </view>
-
-      <view class="bottom-space"></view>
-    </scroll-view>
+    </view>
   </view>
 </template>
 
@@ -74,28 +95,30 @@ import { ref, computed } from 'vue'
 import { useWardrobeStore } from '@/store/wardrobe'
 import { useMatchStore } from '@/store/match'
 import type { Clothing } from '@/types'
-import type { ClothingLayer } from '@/components/TryOnCanvas.vue'
+import { isKeyConfigured } from '@/api/dashscope'
+import { useOutfitGenerator } from '@/composables/useOutfitGenerator'
 import NavBar from '@/components/NavBar.vue'
 import ModelSwitch from '@/components/ModelSwitch.vue'
-import TryOnCanvas from '@/components/TryOnCanvas.vue'
 
 const wardrobe = useWardrobeStore()
 const match = useMatchStore()
+const { isGenerating, currentStep, resultImage, error, generateFromClothes, reset: resetGenerator } = useOutfitGenerator()
 
-const tryonRef = ref<InstanceType<typeof TryOnCanvas> | null>(null)
 const activeCategory = ref('top')
 const selectedIds = ref<Set<string>>(new Set())
 
-const canvasW = 375
-const canvasH = 440
+const stepLabel: Record<string, string> = {
+  analyzing: '正在分析选中的衣物...',
+  generating: '正在生成效果图...'
+}
 
 const categories = [
-  { value: 'top', label: '上衣', icon: '👕' },
-  { value: 'pants', label: '裤子', icon: '👖' },
-  { value: 'skirt', label: '裙子', icon: '👗' },
-  { value: 'coat', label: '外套', icon: '🧥' },
-  { value: 'shoes', label: '鞋子', icon: '👟' },
-  { value: 'accessory', label: '配饰', icon: '🎒' }
+  { value: 'top', label: '上衣' },
+  { value: 'pants', label: '裤子' },
+  { value: 'skirt', label: '裙子' },
+  { value: 'coat', label: '外套' },
+  { value: 'shoes', label: '鞋子' },
+  { value: 'accessory', label: '配饰' },
 ]
 
 const filteredClothes = computed(() =>
@@ -115,50 +138,60 @@ const getCatLabel = (val: string) => {
 const toggleClothing = (item: Clothing) => {
   if (selectedIds.value.has(item.id)) {
     selectedIds.value.delete(item.id)
-    tryonRef.value?.removeClothing(item.id)
   } else {
     selectedIds.value.add(item.id)
-    tryonRef.value?.addClothing(item)
   }
 }
 
-const handleLayersUpdate = (_layers: ClothingLayer[]) => {
-  // Position updates from drag interactions; no persistence needed during editing
+const handleGenerate = async () => {
+  if (!isKeyConfigured()) {
+    uni.showModal({
+      title: '未配置 API Key',
+      content: '请先在设置页配置阿里云 API Key',
+      success: (res) => {
+        if (res.confirm) uni.navigateTo({ url: '/pages/settings/index' })
+      }
+    })
+    return
+  }
+
+  const clothes = selectedClothes.value
+  if (clothes.length < 2) {
+    uni.showToast({ title: '请至少选择2件衣物', icon: 'none' })
+    return
+  }
+
+  await generateFromClothes(clothes, {
+    gender: match.modelGender,
+    style: '休闲'
+  })
 }
 
 const handleReset = () => {
   selectedIds.value.clear()
-  tryonRef.value?.reset()
+  resetGenerator()
 }
 
 const handleExport = () => {
-  if (selectedIds.value.size === 0) {
-    uni.showToast({ title: '请先选择衣物', icon: 'none' })
+  if (!resultImage.value) {
+    uni.showToast({ title: '请先生成效果图', icon: 'none' })
     return
   }
-  tryonRef.value?.exportImage()
-}
-
-const handleExported = (dataURL: string) => {
-  if (!dataURL) {
-    uni.showToast({ title: '导出失败', icon: 'none' })
-    return
-  }
-  uni.previewImage({ urls: [dataURL] })
+  uni.previewImage({ urls: [resultImage.value] })
 }
 
 const handleSave = () => {
-  if (selectedIds.value.size < 2) {
-    uni.showToast({ title: '请至少选择2件衣物', icon: 'none' })
+  if (!resultImage.value) {
+    uni.showToast({ title: '请先生成效果图', icon: 'none' })
     return
   }
   match.addOutfit({
-    name: '我的搭配',
-    description: `${selectedIds.value.size} 件衣物`,
+    name: 'AI 搭配',
+    description: `${selectedIds.value.size} 件衣物 AI 生成`,
     clothes: [...selectedIds.value],
     scene: '自定义',
     season: '四季',
-    isFavorite: false
+    isFavorite: false,
   })
   uni.showToast({ title: '已保存', icon: 'success' })
 }
@@ -167,123 +200,221 @@ const handleSave = () => {
 <style lang="scss" scoped>
 .dressing-page {
   min-height: 100vh;
-  background: $bg-color;
+  background: #F5F5F5;
 }
-.dressing-content {
-  height: calc(100vh - 180rpx);
+
+.dressing-body {
+  padding-top: calc(88rpx + var(--status-bar-height, 44px));
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 88rpx - var(--status-bar-height, 44px));
 }
-.model-switch-bar {
+
+.model-bar {
   display: flex;
   justify-content: center;
-  padding: $spacing-md;
+  padding: 16rpx 0;
 }
+
+/* Canvas */
 .canvas-section {
-  margin: 0 $spacing-md;
-  position: relative;
-}
-.canvas-hint {
-  text-align: center;
-  padding: $spacing-xs;
-  font-size: $font-size-xs;
-  color: $text-light;
-}
-.picker-section {
-  background: $bg-white;
-  margin: $spacing-md;
-  border-radius: $border-radius-lg;
-  padding: $spacing-md;
-}
-.category-tabs {
-  white-space: nowrap;
-  margin-bottom: $spacing-sm;
-}
-.cat-tab {
-  display: inline-block;
-  padding: 8rpx 20rpx;
-  margin-right: 8rpx;
-  background: $bg-gray;
-  border-radius: 32rpx;
-  font-size: $font-size-sm;
-  &.active {
-    background: $primary-color;
-    color: #fff;
-  }
-}
-.clothing-strip {
-  white-space: nowrap;
-}
-.clothing-thumb {
-  display: inline-block;
-  width: 120rpx;
-  margin-right: 12rpx;
-  text-align: center;
-  position: relative;
-  image {
-    width: 120rpx;
-    height: 120rpx;
-    border-radius: $border-radius-md;
-    border: 3rpx solid transparent;
-  }
-  &.selected image {
-    border-color: $primary-color;
-  }
-}
-.clothing-name {
-  font-size: 20rpx;
-  color: $text-secondary;
-  display: block;
-  margin-top: 4rpx;
+  margin: 0 24rpx;
+  border-radius: 16rpx;
   overflow: hidden;
-  text-overflow: ellipsis;
+  box-shadow: 0 4rpx 24rpx rgba(0,0,0,0.06);
+  background: #FFFFFF;
 }
-.check-mark {
-  position: absolute;
-  top: 4rpx;
-  right: 4rpx;
-  width: 32rpx;
-  height: 32rpx;
-  background: $primary-color;
-  color: #fff;
-  border-radius: 50%;
-  font-size: 18rpx;
+
+.image-stage {
+  width: 100%;
+  aspect-ratio: 375 / 600;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: #FAFAFA;
 }
+
+.result-image {
+  width: 100%;
+  height: 100%;
+}
+
+.stage-loading,
+.stage-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.stage-spinner,
+.stage-icon {
+  font-size: 64rpx;
+}
+
+.stage-text {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* Picker */
+.picker-section {
+  flex: 1;
+  background: #FFFFFF;
+  margin: 20rpx 24rpx;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.picker-label {
+  font-size: 26rpx;
+  font-weight: 600;
+  color: #171717;
+  margin-bottom: 14rpx;
+}
+
+.category-tabs {
+  white-space: nowrap;
+  margin-bottom: 16rpx;
+  flex-shrink: 0;
+}
+
+.cat-tab {
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 24rpx;
+  margin-right: 12rpx;
+  background: #F5F5F5;
+  border-radius: 24rpx;
+  font-size: 24rpx;
+  color: #666;
+  transition: all 0.15s;
+
+  &.active {
+    background: #171717;
+    color: #FFFFFF;
+  }
+}
+
+.clothing-strip {
+  white-space: nowrap;
+  flex: 1;
+}
+
+.clothing-thumb {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 130rpx;
+  margin-right: 16rpx;
+}
+
+.thumb-img-wrap {
+  position: relative;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 12rpx;
+  overflow: hidden;
+  border: 3rpx solid transparent;
+  background: #F5F5F5;
+  transition: border-color 0.15s;
+
+  image {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.clothing-thumb.selected .thumb-img-wrap {
+  border-color: #D4AF37;
+}
+
+.thumb-check {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 36rpx;
+  height: 36rpx;
+  background: #D4AF37;
+  color: #FFFFFF;
+  font-size: 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 10rpx 0 10rpx;
+}
+
+.thumb-name {
+  font-size: 20rpx;
+  color: #888;
+  margin-top: 6rpx;
+  max-width: 120rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .empty-cat {
-  padding: $spacing-lg;
-  text-align: center;
-  color: $text-light;
-  font-size: $font-size-sm;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 24rpx;
 }
+
+/* Action Bar */
 .action-bar {
   display: flex;
-  gap: $spacing-md;
-  padding: 0 $spacing-md;
-  padding-bottom: calc($spacing-md + env(safe-area-inset-bottom));
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  padding-bottom: calc(16rpx + env(safe-area-inset-bottom));
+  background: #FFFFFF;
+  border-top: 1rpx solid #F0F0F0;
 }
-.btn {
+
+.act-btn {
   flex: 1;
-  padding: $spacing-md;
-  text-align: center;
-  border-radius: $border-radius-md;
-  font-size: $font-size-md;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14rpx;
+  font-size: 26rpx;
   font-weight: 500;
+  transition: opacity 0.15s;
+
+  &:active {
+    opacity: 0.8;
+  }
 }
-.btn-primary {
-  background: $primary-color;
-  color: #fff;
+
+.act-btn.reset {
+  background: #F5F5F5;
+  color: #666;
 }
-.btn-outline {
-  background: $bg-white;
-  color: $text-primary;
-  border: 1rpx solid $border-color;
+
+.act-btn.export {
+  background: #F0F0F0;
+  color: #171717;
 }
-.btn-secondary {
-  background: $bg-gray;
-  color: $text-primary;
+
+.act-btn.save {
+  background: linear-gradient(135deg, #D4AF37, #C5A028);
+  color: #FFFFFF;
+  font-weight: 600;
 }
-.bottom-space {
-  height: 40rpx;
+
+.act-btn.generate {
+  background: linear-gradient(135deg, #4A90D9, #357ABD);
+  color: #FFFFFF;
+  font-weight: 600;
+
+  &.disabled {
+    opacity: 0.5;
+  }
 }
 </style>
