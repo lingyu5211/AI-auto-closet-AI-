@@ -3,6 +3,19 @@
     <view class="outfit-preview" v-if="showPreview && previewImage">
       <image :src="previewImage" mode="aspectFit" class="preview-image" />
     </view>
+    <view class="outfit-preview" v-else-if="showPreview && modelSrc">
+      <image :src="modelSrc" mode="aspectFit" class="preview-model-bg" />
+      <view class="preview-clothes-overlay">
+        <image
+          v-for="(item, idx) in displayClothes.slice(0, 3)"
+          :key="item.id"
+          :src="item.photo"
+          mode="aspectFill"
+          class="preview-clothes-thumb"
+          :style="{ zIndex: idx }"
+        />
+      </view>
+    </view>
     <view class="outfit-images" v-else>
       <view v-for="(clothing, index) in displayClothes" :key="clothing.id" class="outfit-image" :style="{ zIndex: displayClothes.length - index }">
         <image v-if="clothing.photo" :src="clothing.photo" mode="aspectFill" />
@@ -84,16 +97,45 @@ const getTypeIcon = (type: string) => {
   position: relative;
 }
 
-.outfit-preview {
-  padding: $spacing-sm;
-  display: flex;
-  justify-content: center;
-}
-
 .preview-image {
   width: 100%;
   height: 360rpx;
   border-radius: $border-radius;
+}
+
+.preview-model-bg {
+  width: 100%;
+  height: 360rpx;
+  border-radius: $border-radius;
+  position: absolute;
+  top: 0;
+  left: 0;
+  object-fit: contain;
+}
+
+.preview-clothes-overlay {
+  position: absolute;
+  bottom: 8rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4rpx;
+}
+
+.preview-clothes-thumb {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 8rpx;
+  border: 2rpx solid rgba(255,255,255,0.8);
+  background: #fff;
+}
+
+.outfit-preview {
+  position: relative;
+  padding: $spacing-sm;
+  display: flex;
+  justify-content: center;
+  min-height: 200rpx;
 }
 
 .outfit-images {

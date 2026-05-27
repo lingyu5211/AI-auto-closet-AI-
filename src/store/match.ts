@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import type { Outfit, Weather } from '@/types'
 import { useWardrobeStore } from './wardrobe'
 import { useAuthStore } from './auth'
+import boyModel from '@/img/boy_model.png'
+import girlModel from '@/img/girl_model.png'
 
 const STORAGE_KEY = 'wardrobe_outfits'
 
@@ -17,6 +19,10 @@ export const useMatchStore = defineStore('match', () => {
   const setModelGender = (gender: 'male' | 'female') => {
     modelGender.value = gender
   }
+
+  const modelImage = computed(() => {
+    return modelGender.value === 'male' ? boyModel : girlModel
+  })
 
   const loadOutfits = () => {
     try {
@@ -263,6 +269,7 @@ export const useMatchStore = defineStore('match', () => {
     getTempAdvice,
     getStyleByTemp,
     modelGender,
+    modelImage,
     setModelGender,
   }
 })

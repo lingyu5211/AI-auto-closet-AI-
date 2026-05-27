@@ -109,7 +109,7 @@
             :key="outfit.id"
             class="outfit-card-wrapper"
           >
-            <OutfitCard :outfit="outfit" :show-actions="true" @click="handleOutfitClick" @favorite="handleFavorite" />
+            <OutfitCard :outfit="outfit" :show-actions="true" :show-preview="true" :model-src="match.modelImage" @click="handleOutfitClick" @favorite="handleFavorite" />
             <view class="outfit-actions-bottom">
               <view class="btn btn-outline btn-sm" @click="handleApply(outfit)">应用</view>
             </view>
