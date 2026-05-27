@@ -76,7 +76,12 @@ async function qwenFetch(endpoint: string, body: Record<string, unknown>): Promi
   })
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(`Qwen API error ${res.status}: ${text}`)
+    let detail = text
+    try {
+      const parsed = JSON.parse(text)
+      detail = parsed.message || parsed.error || parsed.code || text
+    } catch {}
+    throw new Error(`Qwen API ${res.status}: ${detail}`)
   }
   return res.json()
 }
@@ -89,7 +94,12 @@ async function wanxiangFetch(endpoint: string, body: Record<string, unknown>): P
   })
   if (!res.ok) {
     const text = await res.text()
-    throw new Error(`Wanxiang API error ${res.status}: ${text}`)
+    let detail = text
+    try {
+      const parsed = JSON.parse(text)
+      detail = parsed.message || parsed.error || parsed.code || text
+    } catch {}
+    throw new Error(`Wanxiang API ${res.status}: ${detail}`)
   }
   return res.json()
 }
