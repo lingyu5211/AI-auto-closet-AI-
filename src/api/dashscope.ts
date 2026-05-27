@@ -87,6 +87,7 @@ async function qwenFetch(endpoint: string, body: Record<string, unknown>): Promi
 }
 
 async function wanxiangFetch(endpoint: string, body: Record<string, unknown>): Promise<unknown> {
+  console.log('[Wanxiang] Request:', endpoint, JSON.stringify(body, null, 2))
   const res = await fetch(`/api/wanxiang${endpoint}`, {
     method: 'POST',
     headers: getAuthHeaders(),
@@ -94,11 +95,14 @@ async function wanxiangFetch(endpoint: string, body: Record<string, unknown>): P
   })
   if (!res.ok) {
     const text = await res.text()
+    console.error('[Wanxiang] Response body:', text)
+    console.error('[Wanxiang] Request body:', JSON.stringify(body, null, 2))
     let detail = text
     try {
       const parsed = JSON.parse(text)
-      detail = parsed.message || parsed.error || parsed.code || text
+      detail = parsed.message || parsed.error || parsed.code || JSON.stringify(parsed)
     } catch {}
+    uni.showToast({ title: `万相错误: ${detail}`, icon: 'none', duration: 4000 })
     throw new Error(`Wanxiang API ${res.status}: ${detail}`)
   }
   return res.json()
