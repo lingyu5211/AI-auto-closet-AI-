@@ -187,7 +187,7 @@ export async function generateOutfitImage(
   prompt: string,
   options: GenerateOptions = {}
 ): Promise<string> {
-  const result = await wanxiangFetch('/services/aigc/text2image/image-synthesis', {
+  const result = await wanxiangFetch('/services/aigc/image-generation/generation', {
     model: 'wan2.6-t2i',
     input: { prompt },
     parameters: {
