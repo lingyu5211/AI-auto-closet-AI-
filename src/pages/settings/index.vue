@@ -125,6 +125,45 @@
       </view>
       
       <view class="settings-section">
+        <view class="section-title">AI 搭配设置</view>
+        <view class="settings-list">
+          <view class="settings-item">
+            <text class="item-icon">🤖</text>
+            <text class="item-text">阿里云 API Key</text>
+          </view>
+          <view class="api-key-row">
+            <input
+              class="api-key-input"
+              :value="apiKey"
+              :type="keyVisible ? 'text' : 'password'"
+              placeholder="输入 DashScope API Key (sk-...)"
+              @input="(e: any) => apiKey = e.detail.value"
+            />
+            <view class="api-key-icons">
+              <view class="key-icon-btn" @click="handleToggleVisibility" v-if="keyConfigured">
+                <text>{{ keyVisible ? '🙈' : '👁️' }}</text>
+              </view>
+            </view>
+          </view>
+          <view class="api-key-actions">
+            <view class="btn btn-sm btn-primary" @click="handleSaveKey">保存</view>
+            <view class="btn btn-sm btn-outline" @click="handleClearKey" v-if="keyConfigured">清除</view>
+          </view>
+          <view class="settings-item">
+            <text class="item-text">状态</text>
+            <text class="item-sub" :style="{ color: keyConfigured ? '#4CAF50' : '#999' }">
+              {{ keyConfigured ? '● 已配置' : '○ 未配置' }}
+            </text>
+          </view>
+          <view class="settings-item" @click="handleTestConnection">
+            <text class="item-text">测试连接</text>
+            <text class="item-sub" v-if="testing">检测中...</text>
+            <text class="item-arrow" v-else>›</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="settings-section">
         <view class="section-title">关于</view>
         <view class="settings-list">
           <view class="settings-item" @click="handlePrivacy">
@@ -152,12 +191,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/store/auth'
 import { useWardrobeStore } from '@/store/wardrobe'
 import { useDiaryStore } from '@/store/diary'
 import { useSocialStore } from '@/store/social'
 import TabBar from '@/components/TabBar.vue'
+import { isKeyConfigured, setApiKey, testConnection } from '@/api/dashscope'
 
 const auth = useAuthStore()
 const wardrobe = useWardrobeStore()
@@ -167,6 +207,64 @@ const social = useSocialStore()
 const syncEnabled = ref(true)
 const darkMode = ref(false)
 const notifications = ref(true)
+
+const apiKey = ref('')
+const keyConfigured = ref(false)
+const keyVisible = ref(false)
+const testing = ref(false)
+
+onMounted(() => {
+  keyConfigured.value = isKeyConfigured()
+  if (keyConfigured.value) {
+    try {
+      const stored = uni.getStorageSync('dashscope_api_key')
+      if (stored) {
+        apiKey.value = maskKey(stored as string)
+      }
+    } catch {}
+  }
+})
+
+function maskKey(key: string): string {
+  if (key.length <= 8) return '***'
+  return key.slice(0, 4) + '***' + key.slice(-4)
+}
+
+function handleSaveKey() {
+  if (!apiKey.value || apiKey.value.includes('***')) return
+  setApiKey(apiKey.value)
+  keyConfigured.value = true
+  apiKey.value = maskKey(apiKey.value)
+  uni.showToast({ title: 'API Key 已保存', icon: 'success' })
+}
+
+function handleClearKey() {
+  setApiKey('')
+  keyConfigured.value = false
+  apiKey.value = ''
+  uni.showToast({ title: 'API Key 已清除', icon: 'none' })
+}
+
+function handleToggleVisibility() {
+  if (!keyConfigured.value) return
+  if (keyVisible.value) {
+    apiKey.value = maskKey(uni.getStorageSync('dashscope_api_key') as string)
+  } else {
+    apiKey.value = uni.getStorageSync('dashscope_api_key') as string || ''
+  }
+  keyVisible.value = !keyVisible.value
+}
+
+async function handleTestConnection() {
+  if (!isKeyConfigured()) {
+    uni.showToast({ title: '请先保存 API Key', icon: 'none' })
+    return
+  }
+  testing.value = true
+  const ok = await testConnection()
+  testing.value = false
+  uni.showToast({ title: ok ? '连接成功' : '连接失败，请检查 Key', icon: ok ? 'success' : 'none' })
+}
 
 const handleProfileClick = () => {
   uni.showToast({ title: '查看个人主页', icon: 'none' })
@@ -494,5 +592,49 @@ const handleLogout = () => {
 
 .bottom-space {
   height: calc(120rpx + #{$spacing-lg});
+}
+
+.api-key-row {
+  display: flex;
+  align-items: center;
+  padding: 0 $spacing-md $spacing-sm;
+  gap: $spacing-sm;
+}
+
+.api-key-input {
+  flex: 1;
+  height: 80rpx;
+  background-color: $bg-gray;
+  border-radius: $border-radius;
+  padding: 0 $spacing-md;
+  font-size: $font-size-sm;
+  color: $text-primary;
+}
+
+.api-key-icons {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.key-icon-btn {
+  width: 64rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+}
+
+.api-key-actions {
+  display: flex;
+  gap: $spacing-sm;
+  padding: 0 $spacing-md $spacing-md;
+}
+
+.btn-sm {
+  padding: 12rpx 32rpx;
+  font-size: 24rpx;
+  border-radius: $border-radius;
 }
 </style>
