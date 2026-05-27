@@ -1,13 +1,7 @@
 <template>
   <view class="outfit-card" @click="handleClick">
-    <view class="outfit-preview" v-if="showPreview && modelSrc">
-      <TryOnCanvas
-        :model-src="modelSrc"
-        :clothes="displayClothes"
-        :interactive="false"
-        :canvas-width="previewW"
-        :canvas-height="previewH"
-      />
+    <view class="outfit-preview" v-if="showPreview && previewImage">
+      <image :src="previewImage" mode="aspectFit" class="preview-image" />
     </view>
     <view class="outfit-images" v-else>
       <view v-for="(clothing, index) in displayClothes" :key="clothing.id" class="outfit-image" :style="{ zIndex: displayClothes.length - index }">
@@ -37,17 +31,14 @@
 import { computed } from 'vue'
 import type { Outfit, Clothing } from '@/types'
 import { useWardrobeStore } from '@/store/wardrobe'
-import TryOnCanvas from '@/components/TryOnCanvas.vue'
 
 const props = defineProps<{
   outfit: Outfit
   showActions?: boolean
   showPreview?: boolean
   modelSrc?: string
+  previewImage?: string
 }>()
-
-const previewW = 140
-const previewH = 200
 
 const emit = defineEmits<{
   click: [outfit: Outfit]
@@ -97,6 +88,12 @@ const getTypeIcon = (type: string) => {
   padding: $spacing-sm;
   display: flex;
   justify-content: center;
+}
+
+.preview-image {
+  width: 100%;
+  height: 360rpx;
+  border-radius: $border-radius;
 }
 
 .outfit-images {
