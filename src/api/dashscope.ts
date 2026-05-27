@@ -149,16 +149,42 @@ export function buildOutfitPrompt(
   options: GenerateOptions = {}
 ): string {
   const gender = options.gender === 'male' ? '男' : '女'
+
+  const typeLabels = ['上衣', '下装', '外套', '裤子', '裙子', '鞋子', '配饰']
+
   const parts = descriptions.map((d, i) => {
-    const label = i === 0 ? '上衣' :
-      i === 1 ? '下装' :
-      i === 2 ? '外套' :
-      i === 3 ? '鞋子' : '配饰'
-    return `${label}: ${d.color}${d.pattern}${d.material}${d.fit}${d.details}`
+    const label = typeLabels[i] || `衣物${i + 1}`
+    const detail = [d.color, d.pattern, d.material, d.fit, d.neckline, d.length, d.details]
+      .filter(Boolean)
+      .join('、')
+    return `${label}：${detail}`
   })
 
-  const styleHint = options.style ? `整体风格${options.style}` : ''
-  return `一位${gender}性模特穿着${parts.join('，')}，${styleHint}，全身站立照，白色背景，服装展示，高清，真实感`
+  const styleHint = options.style ? `整体风格为${options.style}，` : ''
+
+  return `一位${gender}性时装模特，标准直立站姿，正面全身照，纯白色摄影棚背景。
+模特身穿以下指定服装，必须严格还原每件衣物的特征：
+${parts.join('\n')}
+${styleHint}高清时尚摄影，柔和均匀的摄影棚灯光，服装细节清晰可见，1:1比例`
+}
+
+export function buildPromptFromMetadata(
+  clothes: Array<{ name: string; color: string; subType: string }>,
+  options: GenerateOptions = {}
+): string {
+  const gender = options.gender === 'male' ? '男' : '女'
+
+  const parts = clothes.map((c, i) => {
+    const label = ['上衣', '下装', '外套', '鞋子', '配饰'][i] || `衣物${i + 1}`
+    return `${label}：${c.color}色${c.subType || c.name}`
+  })
+
+  const styleHint = options.style ? `整体风格为${options.style}，` : ''
+
+  return `一位${gender}性时装模特，标准直立站姿，正面全身照，纯白色摄影棚背景。
+模特身穿以下指定服装：
+${parts.join('\n')}
+${styleHint}高清时尚摄影，柔和均匀的摄影棚灯光，服装细节清晰可见，1:1比例`
 }
 
 export async function generateOutfitImage(
@@ -176,8 +202,8 @@ export async function generateOutfitImage(
       ]
     },
     parameters: {
-      negative_prompt: '模糊、变形、丑陋、低质量、jpeg artifacts',
-      prompt_extend: true,
+      negative_prompt: '模糊、变形、扭曲、多只手、多余手指、丑陋面孔、低质量、jpeg artifacts、错误的服装、与实际描述不符的衣物、随意图案、杂乱背景、多人、半身照、侧脸',
+      prompt_extend: false,
       watermark: false,
       n: 1,
       size: options.size || '1024*1024'
@@ -218,14 +244,3 @@ export async function testConnection(): Promise<boolean> {
   }
 }
 
-/* ==================== Fallback: Build prompt from clothing metadata ==================== */
-
-export function buildPromptFromMetadata(
-  clothes: Array<{ name: string; color: string; subType: string }>,
-  options: GenerateOptions = {}
-): string {
-  const gender = options.gender === 'male' ? '男' : '女'
-  const parts = clothes.map(c => `${c.color}${c.subType || c.name}`)
-  const styleHint = options.style ? `整体风格${options.style}` : ''
-  return `一位${gender}性模特穿着${parts.join('，')}，${styleHint}，全身站立照，白色背景，服装展示，高清，真实感`
-}
