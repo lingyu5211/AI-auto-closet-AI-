@@ -22,7 +22,7 @@ const CACHE_STORAGE = 'dashscope_cache'
 
 /* ==================== API Key ==================== */
 
-function getApiKey(): string {
+export function getApiKey(): string {
   try {
     return uni.getStorageSync(API_KEY_STORAGE) || ''
   } catch {

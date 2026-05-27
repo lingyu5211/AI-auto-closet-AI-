@@ -197,7 +197,7 @@ import { useWardrobeStore } from '@/store/wardrobe'
 import { useDiaryStore } from '@/store/diary'
 import { useSocialStore } from '@/store/social'
 import TabBar from '@/components/TabBar.vue'
-import { isKeyConfigured, setApiKey, testConnection } from '@/api/dashscope'
+import { isKeyConfigured, setApiKey, testConnection, getApiKey } from '@/api/dashscope'
 
 const auth = useAuthStore()
 const wardrobe = useWardrobeStore()
@@ -216,12 +216,10 @@ const testing = ref(false)
 onMounted(() => {
   keyConfigured.value = isKeyConfigured()
   if (keyConfigured.value) {
-    try {
-      const stored = uni.getStorageSync('dashscope_api_key')
-      if (stored) {
-        apiKey.value = maskKey(stored as string)
-      }
-    } catch {}
+    const stored = getApiKey()
+    if (stored) {
+      apiKey.value = maskKey(stored)
+    }
   }
 })
 
@@ -248,9 +246,9 @@ function handleClearKey() {
 function handleToggleVisibility() {
   if (!keyConfigured.value) return
   if (keyVisible.value) {
-    apiKey.value = maskKey(uni.getStorageSync('dashscope_api_key') as string)
+    apiKey.value = maskKey(getApiKey())
   } else {
-    apiKey.value = uni.getStorageSync('dashscope_api_key') as string || ''
+    apiKey.value = getApiKey()
   }
   keyVisible.value = !keyVisible.value
 }
