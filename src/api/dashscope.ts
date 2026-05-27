@@ -249,7 +249,7 @@ export async function testConnection(): Promise<boolean> {
 /* ==================== Fallback: Build prompt from clothing metadata ==================== */
 
 export function buildPromptFromMetadata(
-  clothes: Array<{ name: string; color: string; type: string; subType: string }>,
+  clothes: Array<{ name: string; color: string; subType: string }>,
   options: GenerateOptions = {}
 ): string {
   const gender = options.gender === 'male' ? '男' : '女'
