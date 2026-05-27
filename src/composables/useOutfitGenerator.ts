@@ -37,12 +37,18 @@ export function useOutfitGenerator() {
 
     try {
       const photos = clothes.map(c => c.photo).filter(Boolean)
-      let descriptions
+      let descriptions: import('@/api/dashscope').ClothingDescription[]
+
+      if (photos.length === 0) {
+        // No photos available, use metadata directly
+        throw new Error('No clothing photos available')
+      }
 
       try {
         descriptions = await analyzeClothingBatch(photos)
       } catch (e) {
         console.warn('Qwen-VL analysis failed, using metadata fallback:', e)
+        currentStep.value = 'generating'
         const prompt = buildPromptFromMetadata(
           clothes.map(c => ({
             name: c.name,
@@ -51,13 +57,13 @@ export function useOutfitGenerator() {
           })),
           options
         )
-        currentStep.value = 'generating'
         try {
           const imgUrl = await generateOutfitImage(prompt, options)
           resultImage.value = imgUrl
           currentStep.value = 'done'
           return imgUrl
         } catch (genErr) {
+          console.warn('Image generation failed in fallback path:', genErr)
           error.value = '图像生成失败，请重试'
           uni.showToast({ title: error.value, icon: 'none' })
           return ''
@@ -73,6 +79,7 @@ export function useOutfitGenerator() {
         currentStep.value = 'done'
         return imgUrl
       } catch (genErr) {
+        console.warn('Image generation failed:', genErr)
         error.value = '图像生成失败，请重试'
         uni.showToast({ title: error.value, icon: 'none' })
         return ''
