@@ -86,28 +86,6 @@ async function qwenFetch(endpoint: string, body: Record<string, unknown>): Promi
   return res.json()
 }
 
-async function wanxiangFetch(endpoint: string, body: Record<string, unknown>): Promise<unknown> {
-  console.log('[Wanxiang] Request:', endpoint, JSON.stringify(body, null, 2))
-  const res = await fetch(`/api/wanxiang${endpoint}`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(body)
-  })
-  if (!res.ok) {
-    const text = await res.text()
-    console.error('[Wanxiang] Response body:', text)
-    console.error('[Wanxiang] Request body:', JSON.stringify(body, null, 2))
-    let detail = text
-    try {
-      const parsed = JSON.parse(text)
-      detail = parsed.message || parsed.error || parsed.code || JSON.stringify(parsed)
-    } catch {}
-    uni.showToast({ title: `万相错误: ${detail}`, icon: 'none', duration: 4000 })
-    throw new Error(`Wanxiang API ${res.status}: ${detail}`)
-  }
-  return res.json()
-}
-
 /* ==================== Qwen-VL: Analyze Clothing ==================== */
 
 export async function analyzeClothing(photo: string): Promise<ClothingDescription> {
@@ -187,56 +165,36 @@ export async function generateOutfitImage(
   prompt: string,
   options: GenerateOptions = {}
 ): Promise<string> {
-  const result = await wanxiangFetch('/services/aigc/image-generation/generation', {
+  const result = await qwenFetch('/services/aigc/multimodal-generation/generation', {
     model: 'wan2.6-t2i',
-    input: { prompt },
+    input: {
+      messages: [
+        {
+          role: 'user',
+          content: [{ text: prompt }]
+        }
+      ]
+    },
     parameters: {
-      size: options.size || '1024*1024',
-      n: 1
+      negative_prompt: '模糊、变形、丑陋、低质量、jpeg artifacts',
+      prompt_extend: true,
+      watermark: false,
+      n: 1,
+      size: options.size || '1024*1024'
     }
   }) as {
-    output?: { task_id?: string }
+    output?: {
+      choices?: Array<{
+        message?: { content?: Array<{ image?: string }> }
+      }>
+    }
   }
 
-  const taskId = result.output?.task_id
-  if (!taskId) {
-    throw new Error('No task_id returned from Wanxiang')
+  const imageUrl = result.output?.choices?.[0]?.message?.content?.[0]?.image
+  if (!imageUrl) {
+    throw new Error('No image returned from Wanxiang')
   }
-
-  const imageUrl = await pollTask(taskId)
   return imageUrl
-}
-
-async function pollTask(taskId: string, maxAttempts = 30, intervalMs = 2000): Promise<string> {
-  for (let i = 0; i < maxAttempts; i++) {
-    const res = await fetch(`/api/wanxiang/tasks/${taskId}`, {
-      headers: getAuthHeaders()
-    })
-    if (!res.ok) {
-      throw new Error(`Task polling failed: ${res.status}`)
-    }
-
-    const data = await res.json() as {
-      output?: {
-        task_status?: string
-        results?: Array<{ url?: string }>
-      }
-    }
-
-    const status = data.output?.task_status
-    if (status === 'SUCCEEDED') {
-      const url = data.output?.results?.[0]?.url
-      if (!url) throw new Error('No image URL in completed task')
-      return url
-    }
-    if (status === 'FAILED') {
-      throw new Error('Image generation task failed')
-    }
-
-    await new Promise(resolve => setTimeout(resolve, intervalMs))
-  }
-
-  throw new Error('Image generation timed out')
 }
 
 /* ==================== Connection Test ==================== */
