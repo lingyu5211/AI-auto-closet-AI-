@@ -17,13 +17,29 @@
             mode="aspectFit"
             class="result-image"
           />
-          <view v-else-if="isGenerating" class="stage-loading">
-            <text class="stage-spinner">⏳</text>
-            <text class="stage-text">{{ stepLabel[currentStep] || '处理中...' }}</text>
-          </view>
-          <view v-else class="stage-empty">
-            <text class="stage-icon">👗</text>
-            <text class="stage-text">选择衣物后点击生成</text>
+          <view v-else class="stage-model-wrap">
+            <image
+              :src="match.modelImage"
+              mode="aspectFit"
+              class="stage-model-bg"
+            />
+            <view v-if="selectedClothes.length > 0" class="stage-clothes-tags">
+              <view
+                v-for="item in selectedClothes"
+                :key="item.id"
+                class="stage-tag"
+              >
+                <image :src="item.photo" mode="aspectFill" class="stage-tag-img" />
+                <text class="stage-tag-text">{{ item.name || item.subType }}</text>
+              </view>
+            </view>
+            <view v-else class="stage-hint">
+              <text class="stage-hint-text">选择衣物后点击生成</text>
+            </view>
+            <view v-if="isGenerating" class="stage-loading-overlay">
+              <text class="stage-spinner">⏳</text>
+              <text class="stage-text">{{ stepLabel[currentStep] || '处理中...' }}</text>
+            </view>
           </view>
         </view>
       </view>
@@ -232,6 +248,7 @@ const handleSave = () => {
   align-items: center;
   justify-content: center;
   background: #FAFAFA;
+  position: relative;
 }
 
 .result-image {
@@ -239,22 +256,87 @@ const handleSave = () => {
   height: 100%;
 }
 
-.stage-loading,
-.stage-empty {
+.stage-model-wrap {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage-model-bg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.stage-clothes-tags {
+  position: absolute;
+  bottom: 16rpx;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8rpx;
+  background: rgba(0,0,0,0.45);
+  border-radius: 20rpx;
+  padding: 8rpx 16rpx;
+}
+
+.stage-tag {
+  display: flex;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.stage-tag-img {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 6rpx;
+  border: 1rpx solid rgba(255,255,255,0.5);
+}
+
+.stage-tag-text {
+  font-size: 20rpx;
+  color: #FFFFFF;
+}
+
+.stage-hint {
+  position: absolute;
+  bottom: 40rpx;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.stage-hint-text {
+  font-size: 24rpx;
+  color: #999;
+  background: rgba(255,255,255,0.8);
+  padding: 8rpx 24rpx;
+  border-radius: 20rpx;
+}
+
+.stage-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.3);
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 12rpx;
 }
 
-.stage-spinner,
-.stage-icon {
+.stage-spinner {
   font-size: 64rpx;
 }
 
 .stage-text {
   font-size: 24rpx;
-  color: #999;
+  color: #FFFFFF;
 }
 
 /* Picker */
