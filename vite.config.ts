@@ -9,5 +9,19 @@ export default defineConfig({
         additionalData: `@import "@/styles/variables.scss";`
       }
     }
+  },
+  server: {
+    proxy: {
+      '/api/qwen': {
+        target: 'https://dashscope.aliyuncs.com',
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/api\/qwen/, '/api/v1')
+      },
+      '/api/wanxiang': {
+        target: 'https://dashscope.aliyuncs.com',
+        changeOrigin: true,
+        rewrite: (path: string) => path.replace(/^\/api\/wanxiang/, '/api/v1')
+      }
+    }
   }
 })
