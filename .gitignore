@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment & local config
+.env
+.env.local
+.env.*.local
+*.local.json
+
+# Claude AI assistant
+.claude/
+
+# Superpowers AI assistant
+.superpowers/
+
+# Internal AI planning docs
+docs/superpowers/
+
+# OS files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Cache
+.cache/
+.temp/
